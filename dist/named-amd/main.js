@@ -1,12 +1,10 @@
 define("ember-qunit/isolated-container",
-  ["./test-resolver","ember","exports"],
-  function(__dependency1__, __dependency2__, __exports__) {
+  ["ember","exports"],
+  function(__dependency1__, __exports__) {
     "use strict";
-    var testResolver = __dependency1__["default"] || __dependency1__;
-    var Ember = __dependency2__["default"] || __dependency2__;
+    var Ember = __dependency1__["default"] || __dependency1__;
 
-    __exports__["default"] = function isolatedContainer(fullNames) {
-      var resolver = testResolver.get();
+    __exports__["default"] = function isolatedContainer(resolver, fullNames) {
       var container = new Ember.Container();
       container.optionsForType('component', { singleton: false });
       container.optionsForType('view', { singleton: false });
@@ -78,7 +76,7 @@ define("ember-qunit/isolated-container",
             var subject = context.subject();
             containerView.pushObject(subject);
             // TODO: destory this somewhere
-            containerView.appendTo(Ember.$('#ember-testing')[0]);
+            containerView.appendTo('#ember-testing');
             return subject;
           });
 
@@ -114,19 +112,21 @@ define("ember-qunit/isolated-container",
       });
     }
   });define("ember-qunit/module-for",
-  ["ember","qunit","./test-context","./isolated-container","exports"],
-  function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __exports__) {
+  ["ember","qunit","./test-context","./isolated-container","./test-resolver","exports"],
+  function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __dependency5__, __exports__) {
     "use strict";
     var Ember = __dependency1__["default"] || __dependency1__;
     var QUnit = __dependency2__["default"] || __dependency2__;
     var testContext = __dependency3__["default"] || __dependency3__;
     var isolatedContainer = __dependency4__["default"] || __dependency4__;
+    var testResolver = __dependency5__["default"] || __dependency5__;
 
     __exports__["default"] = function moduleFor(fullName, description, callbacks, delegate) {
       callbacks = callbacks || { };
 
       var needs = [fullName].concat(callbacks.needs || []);
-      var container = isolatedContainer(needs);
+      var resolver = callbacks.resolver || testResolver.get();
+      var container = isolatedContainer(resolver, needs);
 
       callbacks.subject = callbacks.subject || defaultSubject;
 
@@ -158,9 +158,11 @@ define("ember-qunit/isolated-container",
       var dispatcher = Ember.EventDispatcher.create();
       var _callbacks = {
         setup: function(){
-          container = isolatedContainer(needs);
+          container = isolatedContainer(resolver, needs);
           dispatcher.setup();
-          Ember.$('<div id="ember-testing"/>').appendTo(document.body);
+          if (Ember.$('#ember-testing').length === 0) {
+            Ember.$('<div id="ember-testing"/>').appendTo(document.body);
+          }
           buildContextVariables(context);
           callbacks.setup.call(context, container);
         },

@@ -25,7 +25,7 @@ define(
             var subject = context.subject();
             containerView.pushObject(subject);
             // TODO: destory this somewhere
-            containerView.appendTo(Ember.$('#ember-testing')[0]);
+            containerView.appendTo('#ember-testing');
             return subject;
           });
 

@@ -1,10 +1,8 @@
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.emq=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 "use strict";
-var testResolver = _dereq_("./test-resolver")["default"] || _dereq_("./test-resolver");
 var Ember = window.Ember["default"] || window.Ember;
 
-exports["default"] = function isolatedContainer(fullNames) {
-  var resolver = testResolver.get();
+exports["default"] = function isolatedContainer(resolver, fullNames) {
   var container = new Ember.Container();
   container.optionsForType('component', { singleton: false });
   container.optionsForType('view', { singleton: false });
@@ -17,7 +15,7 @@ exports["default"] = function isolatedContainer(fullNames) {
   }
   return container;
 }
-},{"./test-resolver":7}],2:[function(_dereq_,module,exports){
+},{}],2:[function(_dereq_,module,exports){
 "use strict";
 var Ember = window.Ember["default"] || window.Ember;
 var isolatedContainer = _dereq_("./isolated-container")["default"] || _dereq_("./isolated-container");
@@ -72,7 +70,7 @@ exports["default"] = function moduleForComponent(name, description, callbacks) {
         var subject = context.subject();
         containerView.pushObject(subject);
         // TODO: destory this somewhere
-        containerView.appendTo(Ember.$('#ember-testing')[0]);
+        containerView.appendTo('#ember-testing');
         return subject;
       });
 
@@ -111,12 +109,14 @@ var Ember = window.Ember["default"] || window.Ember;
 var QUnit = window.QUnit["default"] || window.QUnit;
 var testContext = _dereq_("./test-context")["default"] || _dereq_("./test-context");
 var isolatedContainer = _dereq_("./isolated-container")["default"] || _dereq_("./isolated-container");
+var testResolver = _dereq_("./test-resolver")["default"] || _dereq_("./test-resolver");
 
 exports["default"] = function moduleFor(fullName, description, callbacks, delegate) {
   callbacks = callbacks || { };
 
   var needs = [fullName].concat(callbacks.needs || []);
-  var container = isolatedContainer(needs);
+  var resolver = callbacks.resolver || testResolver.get();
+  var container = isolatedContainer(resolver, needs);
 
   callbacks.subject = callbacks.subject || defaultSubject;
 
@@ -148,9 +148,11 @@ exports["default"] = function moduleFor(fullName, description, callbacks, delega
   var dispatcher = Ember.EventDispatcher.create();
   var _callbacks = {
     setup: function(){
-      container = isolatedContainer(needs);
+      container = isolatedContainer(resolver, needs);
       dispatcher.setup();
-      Ember.$('<div id="ember-testing"/>').appendTo(document.body);
+      if (Ember.$('#ember-testing').length === 0) {
+        Ember.$('<div id="ember-testing"/>').appendTo(document.body);
+      }
       buildContextVariables(context);
       callbacks.setup.call(context, container);
     },
@@ -194,7 +196,7 @@ function buildContextVariables(context) {
     };
   });
 }
-},{"./isolated-container":1,"./test-context":6}],6:[function(_dereq_,module,exports){
+},{"./isolated-container":1,"./test-context":6,"./test-resolver":7}],6:[function(_dereq_,module,exports){
 "use strict";
 var __test_context__;
 

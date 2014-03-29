@@ -3,12 +3,14 @@ var Ember = require("ember")["default"] || require("ember");
 var QUnit = require("qunit")["default"] || require("qunit");
 var testContext = require("./test-context")["default"] || require("./test-context");
 var isolatedContainer = require("./isolated-container")["default"] || require("./isolated-container");
+var testResolver = require("./test-resolver")["default"] || require("./test-resolver");
 
 exports["default"] = function moduleFor(fullName, description, callbacks, delegate) {
   callbacks = callbacks || { };
 
   var needs = [fullName].concat(callbacks.needs || []);
-  var container = isolatedContainer(needs);
+  var resolver = callbacks.resolver || testResolver.get();
+  var container = isolatedContainer(resolver, needs);
 
   callbacks.subject = callbacks.subject || defaultSubject;
 
@@ -40,9 +42,11 @@ exports["default"] = function moduleFor(fullName, description, callbacks, delega
   var dispatcher = Ember.EventDispatcher.create();
   var _callbacks = {
     setup: function(){
-      container = isolatedContainer(needs);
+      container = isolatedContainer(resolver, needs);
       dispatcher.setup();
-      Ember.$('<div id="ember-testing"/>').appendTo(document.body);
+      if (Ember.$('#ember-testing').length === 0) {
+        Ember.$('<div id="ember-testing"/>').appendTo(document.body);
+      }
       buildContextVariables(context);
       callbacks.setup.call(context, container);
     },

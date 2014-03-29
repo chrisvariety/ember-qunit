@@ -1,17 +1,19 @@
 define(
-  ["ember","qunit","./test-context","./isolated-container","exports"],
-  function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __exports__) {
+  ["ember","qunit","./test-context","./isolated-container","./test-resolver","exports"],
+  function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __dependency5__, __exports__) {
     "use strict";
     var Ember = __dependency1__["default"] || __dependency1__;
     var QUnit = __dependency2__["default"] || __dependency2__;
     var testContext = __dependency3__["default"] || __dependency3__;
     var isolatedContainer = __dependency4__["default"] || __dependency4__;
+    var testResolver = __dependency5__["default"] || __dependency5__;
 
     __exports__["default"] = function moduleFor(fullName, description, callbacks, delegate) {
       callbacks = callbacks || { };
 
       var needs = [fullName].concat(callbacks.needs || []);
-      var container = isolatedContainer(needs);
+      var resolver = callbacks.resolver || testResolver.get();
+      var container = isolatedContainer(resolver, needs);
 
       callbacks.subject = callbacks.subject || defaultSubject;
 
@@ -43,9 +45,11 @@ define(
       var dispatcher = Ember.EventDispatcher.create();
       var _callbacks = {
         setup: function(){
-          container = isolatedContainer(needs);
+          container = isolatedContainer(resolver, needs);
           dispatcher.setup();
-          Ember.$('<div id="ember-testing"/>').appendTo(document.body);
+          if (Ember.$('#ember-testing').length === 0) {
+            Ember.$('<div id="ember-testing"/>').appendTo(document.body);
+          }
           buildContextVariables(context);
           callbacks.setup.call(context, container);
         },

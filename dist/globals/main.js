@@ -52,7 +52,7 @@ var moduleFor = _dereq_("./module-for")["default"] || _dereq_("./module-for");
 var Ember = window.Ember["default"] || window.Ember;
 
 exports["default"] = function moduleForComponent(name, description, callbacks) {
-  var resolver = testResolver.get();
+  var resolver = callbacks.resolver || testResolver.get();
 
   moduleFor('component:' + name, description, callbacks, function(container, context) {
     var templateName = 'template:components/' + name;

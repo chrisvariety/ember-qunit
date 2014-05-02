@@ -58,7 +58,7 @@ define("ember-qunit/isolated-container",
     var Ember = __dependency3__["default"] || __dependency3__;
 
     __exports__["default"] = function moduleForComponent(name, description, callbacks) {
-      var resolver = testResolver.get();
+      var resolver = callbacks.resolver || testResolver.get();
 
       moduleFor('component:' + name, description, callbacks, function(container, context) {
         var templateName = 'template:components/' + name;
